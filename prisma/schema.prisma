@@ -1,0 +1,83 @@
+// This is your Prisma schema file,
+// learn more about it in the docs: https://pris.ly/d/prisma-schema
+
+datasource db {
+    provider = "mongodb"
+    url      = env("DATABASE_URL")
+}
+
+generator client {
+    provider        = "prisma-client-js"
+    binaryTargets   = ["native", "linux-musl"]
+    previewFeatures = ["mongodb"]
+}
+
+model Addresses {
+    id           String    @id @default(auto()) @map("_id") @db.ObjectId
+    addressLabel String
+    addressName  String?
+    street       String
+    streetNumber Int
+    neighborhood String
+    city         String
+    state        String
+    zipCode      String
+    location     Float[]
+    createdAt    DateTime  @default(now())
+    updatedAt    DateTime? @default(now())
+    deleted      Boolean?  @default(false)
+    deletedAt    DateTime?
+    lockers      Lockers[]
+}
+
+model Lockers {
+    id               String     @id @default(auto()) @map("_id") @db.ObjectId
+    lockerIdentifier String
+    number           Int
+    createdAt        DateTime   @default(now())
+    updatedAt        DateTime?  @default(now())
+    deleted          Boolean?   @default(false)
+    deletedAt        DateTime?
+    addressId        String     @db.ObjectId
+    lockersAddress   Addresses? @relation(fields: [addressId], references: [id])
+    drawers          Drawers[]
+}
+
+model Drawers {
+    id               String    @id @default(auto()) @map("_id") @db.ObjectId
+    drawerIdentifier String
+    number           Int
+    status           String    @default("Available")
+    size             Json
+    sizeLabel        String
+    code             Int?
+    locker           Lockers?  @relation(fields: [lockerId], references: [id])
+    createdAt        DateTime  @default(now())
+    updatedAt        DateTime? @default(now())
+    deleted          Boolean?  @default(false)
+    deletedAt        DateTime?
+    lockerId         String    @db.ObjectId
+    orders           Orders[]
+}
+
+model Orders {
+    id              String    @id @default(auto()) @map("_id") @db.ObjectId
+    orderIdentifier String
+    number          Int
+    status          String
+    size            Json
+    deliveryCode    Int?
+    pickupCode      Int?
+    buyersAddress   Json
+    contact         Json
+    delivered       Boolean?
+    deliveredAt     DateTime?
+    received        Boolean?  @default(false)
+    receivedAt      DateTime?
+    createdAt       DateTime  @default(now())
+    updatedAt       DateTime? @default(now())
+    deleted         Boolean?  @default(false)
+    deletedAt       String?
+    drawer          Drawers?  @relation(fields: [drawerId], references: [id])
+    drawerId        String?   @db.ObjectId
+}
